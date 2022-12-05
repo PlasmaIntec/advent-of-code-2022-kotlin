@@ -28,3 +28,21 @@ fun <R, T> CoroutineScope.accumulateConsumer(consumer: Channel<T>, initialValue:
         }
         println("accumulator: $accumulator")
     }
+
+inline fun <reified T> transpose(xs: MutableList<MutableList<T>>): MutableList<MutableList<T>> {
+    val cols = xs[xs.size-1].size
+    val rows = xs.size
+    return MutableList(cols) { j ->
+        MutableList(rows) { i ->
+            try {
+                xs[i][j]
+            } catch (e: Exception) {
+                xs[0][0]
+            }
+        }
+    }
+}
+
+fun isNumeric(toCheck: String): Boolean {
+    return toCheck.toDoubleOrNull() != null
+}
