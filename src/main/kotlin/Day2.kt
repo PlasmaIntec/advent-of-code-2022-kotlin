@@ -1,24 +1,52 @@
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
 import java.io.File
 
 class Day2 {
     fun main() {
-        val input = File("/Users/mtthman/Desktop/AdventOfCode/src/main/kotlin/Day2.txt").readText()
-        val lines = input.parseLines()
+        measureDuration("sequential") {
+            val input = File("/Users/mtthman/Desktop/AdventOfCode/src/main/kotlin/Day2.txt").readText()
+            val lines = input.parseLines()
 
-        // part 1: we have a direct mapping of move to score
-        val part1Score = lines.sumOf {
-            val (theirs, ours) = it.split(" ")
-            ours.moveToScore() + ours.scoreAgainst(theirs)
-        }
-        println(part1Score)
+            // part 1: we have a direct mapping of move to score
+            val part1Score = lines.sumOf {
+                val (theirs, ours) = it.split(" ")
+                ours.moveToScore() + ours.scoreAgainst(theirs)
+            }
+            println(part1Score)
 
-        // part 2: we need to infer move
-        val part2Score = lines.sumOf {
-            val (theirs, directive) = it.split(" ")
-            val ours = directive.inferMove(theirs)
-            ours.moveToScore() + ours.scoreAgainst(theirs)
+            // part 2: we need to infer move
+            val part2Score = lines.sumOf {
+                val (theirs, directive) = it.split(" ")
+                val ours = directive.inferMove(theirs)
+                ours.moveToScore() + ours.scoreAgainst(theirs)
+            }
+            println(part2Score)
         }
-        println(part2Score)
+
+        measureDuration("concurrent") {
+            runBlocking {
+                var part1Score = 0
+                var part2Score = 0
+
+                File("/Users/mtthman/Desktop/AdventOfCode/src/main/kotlin/Day2.txt").useLines { lines ->
+                    lines.forEach {
+                        part1Score += async {
+                            val (theirs, ours) = it.split(" ")
+                            ours.moveToScore() + ours.scoreAgainst(theirs)
+                        }.await()
+                        part2Score += async {
+                            val (theirs, directive) = it.split(" ")
+                            val ours = directive.inferMove(theirs)
+                            ours.moveToScore() + ours.scoreAgainst(theirs)
+                        }.await()
+                    }
+                }
+
+                println(part1Score)
+                println(part2Score)
+            }
+        }
     }
 
     val oursList = listOf("X", "Y", "Z")
